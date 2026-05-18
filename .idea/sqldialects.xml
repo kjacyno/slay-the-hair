@@ -2,5 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/prisma/migrations/20260515164521_init/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/prisma/migrations/20260515203718_remove_unique_email/migration.sql" dialect="GenericSQL" />
+    <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>

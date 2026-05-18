@@ -1,4 +1,5 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 Next.js Agent Rules: Hair Salon Management System
@@ -68,9 +69,9 @@ Password Safety: All passwords must be hashed using bcrypt before database entry
 
 Role-Based Access Control (RBAC): Check user roles on the server before rendering protected layouts or executing sensitive actions.
 
-
 Maintain clean TypeScript interfaces. Avoid any.
 
 Keep logic inside services or lib folders; keep components focused on UI.
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
 <!-- END:nextjs-agent-rules -->

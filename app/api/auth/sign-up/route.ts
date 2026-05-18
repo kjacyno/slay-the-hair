@@ -1,43 +1,26 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { NextResponse } from 'next/server'
 
-import { prisma } from "@/lib/prisma";
-import {createClient} from "@/lib/client";
-
-const signUpSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8),
-  firstName: z.string().trim().min(1),
-  lastName: z.string().trim().min(1),
-  phone: z.e164(),
-});
+import { prisma } from '@/lib/prisma/prisma'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-  const parsed = signUpSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Please fill in all fields with valid values." },
-      { status: 400 }
-    );
-  }
-
-  const { email, password, firstName, lastName, phone } = parsed.data;
-  const supabase =  createClient();
-  const origin = request.headers.get("origin") ?? new URL(request.url).origin;
-
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  });
-
-  if (existingUser) {
-    return NextResponse.json(
-      { error: "An account with this email already exists." },
-      { status: 409 }
-    );
-  }
+  const body = await request.json().catch(() => null)
+  
+  const { email, password, firstName, lastName, phone } = body;
+  
+  const supabase = await createClient()
+  const origin = request.headers.get('origin') ?? new URL(request.url).origin
+  // const existingUser = await prisma.user.findUnique({
+  //   where: { email },
+  //   select: { id: true },
+  // });
+  //
+  // if (existingUser) {
+  //   return NextResponse.json(
+  //     { error: "An account with this email already exists." },
+  //     { status: 409 }
+  //   );
+  // }
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -45,17 +28,17 @@ export async function POST(request: Request) {
     options: {
       emailRedirectTo: `${origin}/protected`,
     },
-  });
+  })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
   if (!data.user) {
     return NextResponse.json(
-      { error: "Could not create the authentication account." },
-      { status: 500 }
-    );
+      { error: 'Could not create the account, please try again.' },
+      { status: 500 },
+    )
   }
 
   try {
@@ -66,12 +49,12 @@ export async function POST(request: Request) {
         firstName,
         lastName,
         phone,
-        role: "CLIENT",
+        role: 'CLIENT',
         isApproved: false,
       },
-    });
+    })
   } catch {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut()
 
     return NextResponse.json(
       { error: "Could not create the user profile." },
@@ -79,5 +62,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json({ ok: true }, { status: 201 })
 }

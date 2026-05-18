@@ -1,0 +1,8 @@
+.next
+build
+generated
+lib/generated
+node_modules
+package-lock.json
+tsconfig.tsbuildinfo
+*.log
