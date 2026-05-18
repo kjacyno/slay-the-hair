@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   
   const supabase = await createClient()
   const origin = request.headers.get('origin') ?? new URL(request.url).origin
+  console.log(origin)
   // const existingUser = await prisma.user.findUnique({
   //   where: { email },
   //   select: { id: true },
@@ -26,8 +27,7 @@ export async function POST(request: Request) {
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/protected`,
-    },
+      emailRedirectTo: `${origin}/auth/callback?next=/protected`    },
   })
 
   if (error) {

@@ -13,7 +13,7 @@ import {Input} from './ui/input'
 import {Button} from './ui/button'
 import {Field, FieldError, FieldLabel} from './ui/field'
 
-export function SignUpForm({className, ...props}: ComponentPropsWithoutRef<'div'>) {
+export const SignUpForm =({className, ...props}: ComponentPropsWithoutRef<'div'>)=> {
   const [apiError, setApiError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
