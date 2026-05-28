@@ -18,7 +18,10 @@ export const signUpSchema = signUpBaseSchema.refine(
 )
 
 export const signUpApiSchema = signUpBaseSchema.omit({ repeatPassword: true })
+export const signUpProfileSchema = signUpApiSchema.extend({
+  userId: z.uuid(),
+  passwordHash: z.string(),
+})
 
 export type SignUpFormValues = z.infer<typeof signUpBaseSchema>
-
 

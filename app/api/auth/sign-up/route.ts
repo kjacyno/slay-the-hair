@@ -1,66 +1,44 @@
-import { NextResponse } from 'next/server'
+import {NextResponse} from 'next/server'
 
-import { prisma } from '@/lib/prisma/prisma'
-import { createClient } from '@/lib/supabase/server'
+import {prisma} from '@/lib/prisma/prisma'
+import {signUpProfileSchema} from '@/lib/validations/auth'
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const body = await request.json().catch(() => null)
+  const parsed = signUpProfileSchema.safeParse(body)
   
-  const { email, password, firstName, lastName, phone } = body;
+  if (!parsed.success) {
+    return NextResponse.json({error: 'Invalid sign-up data.'}, {status: 400})
+  }
   
-  const supabase = await createClient()
-  const origin = request.headers.get('origin') ?? new URL(request.url).origin
-  console.log(origin)
-  // const existingUser = await prisma.user.findUnique({
-  //   where: { email },
-  //   select: { id: true },
-  // });
-  //
-  // if (existingUser) {
-  //   return NextResponse.json(
-  //     { error: "An account with this email already exists." },
-  //     { status: 409 }
-  //   );
-  // }
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback?next=/protected`    },
-  })
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
-  }
-
-  if (!data.user) {
-    return NextResponse.json(
-      { error: 'Could not create the account, please try again.' },
-      { status: 500 },
-    )
-  }
-
+  const {email, firstName, lastName, phone, userId, passwordHash} = parsed.data
+  
   try {
-    await prisma.user.create({
-      data: {
-        id: data.user.id,
+    await prisma.user.upsert({
+      where: {userId},
+      create: {
+        userId,
         email,
+        passwordHash,
         firstName,
         lastName,
         phone,
         role: 'CLIENT',
         isApproved: false,
       },
+      update: {
+        email,
+        firstName,
+        lastName,
+        phone,
+      },
     })
   } catch {
-    await supabase.auth.signOut()
-
     return NextResponse.json(
-      { error: "Could not create the user profile." },
-      { status: 500 }
-    );
+      {error: 'Could not create the user profile.'},
+      {status: 500},
+    )
   }
-
-  return NextResponse.json({ ok: true }, { status: 201 })
+  
+  return NextResponse.json({ok: true}, {status: 201})
 }

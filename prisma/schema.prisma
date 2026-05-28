@@ -14,7 +14,7 @@ datasource db {
 
 enum Role {
   CLIENT
-  HAIRDRESSER
+  STYLIST
   ADMIN
 }
 
@@ -25,8 +25,9 @@ enum AppointmentStatus {
 }
 
 model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  email        String
+  userId       String        @id @default(uuid()) @db.Uuid
+  email        String        @unique
+  passwordHash String
   firstName    String
   lastName     String
   phone        String
@@ -34,36 +35,36 @@ model User {
   role         Role
   isApproved   Boolean       @default(false)
 
-  schedules                Schedule[]    @relation("HairdresserSchedules")
+  schedules                Schedule[]    @relation("StylistSchedules")
   clientAppointments       Appointment[] @relation("ClientAppointments")
-  hairdresserAppointments  Appointment[] @relation("HairdresserAppointments")
+  stylistAppointments      Appointment[] @relation("StylistAppointments")
 }
 
 model Schedule {
   id            String   @id @default(uuid()) @db.Uuid
-  hairdresserId String   @db.Uuid
+  stylistId     String   @db.Uuid
   date          DateTime @db.Date
   startTime     Int
   endTime       Int
 
-  hairdresser User @relation("HairdresserSchedules", fields: [hairdresserId], references: [id], onDelete: Cascade)
+  stylist User @relation("StylistSchedules", fields: [stylistId], references: [userId], onDelete: Cascade)
 
-  @@index([hairdresserId, date])
+  @@index([stylistId, date])
 }
 
 model Appointment {
   id            String            @id @default(uuid()) @db.Uuid
   clientId      String            @db.Uuid
-  hairdresserId String            @db.Uuid
+  stylistId     String            @db.Uuid
   date          DateTime          @db.Date
   startTime     Int
   duration      Int
   status        AppointmentStatus @default(PENDING)
   createdAt     DateTime          @default(now())
 
-  client      User @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Cascade)
-  hairdresser User @relation("HairdresserAppointments", fields: [hairdresserId], references: [id], onDelete: Cascade)
+  client      User @relation("ClientAppointments", fields: [clientId], references: [userId], onDelete: Cascade)
+  stylist     User @relation("StylistAppointments", fields: [stylistId], references: [userId], onDelete: Cascade)
 
   @@index([clientId, date])
-  @@index([hairdresserId, date, startTime])
+  @@index([stylistId, date, startTime])
 }

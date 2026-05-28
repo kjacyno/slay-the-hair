@@ -121,8 +121,9 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 });
 
 exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
+  userId: 'userId',
   email: 'email',
+  passwordHash: 'passwordHash',
   firstName: 'firstName',
   lastName: 'lastName',
   phone: 'phone',
@@ -133,7 +134,7 @@ exports.Prisma.UserScalarFieldEnum = {
 
 exports.Prisma.ScheduleScalarFieldEnum = {
   id: 'id',
-  hairdresserId: 'hairdresserId',
+  stylistId: 'stylistId',
   date: 'date',
   startTime: 'startTime',
   endTime: 'endTime'
@@ -142,7 +143,7 @@ exports.Prisma.ScheduleScalarFieldEnum = {
 exports.Prisma.AppointmentScalarFieldEnum = {
   id: 'id',
   clientId: 'clientId',
-  hairdresserId: 'hairdresserId',
+  stylistId: 'stylistId',
   date: 'date',
   startTime: 'startTime',
   duration: 'duration',
@@ -166,7 +167,7 @@ exports.Prisma.NullsOrder = {
 };
 exports.Role = exports.$Enums.Role = {
   CLIENT: 'CLIENT',
-  HAIRDRESSER: 'HAIRDRESSER',
+  STYLIST: 'STYLIST',
   ADMIN: 'ADMIN'
 };
 

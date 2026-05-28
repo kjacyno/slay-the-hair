@@ -1,19 +1,20 @@
 'use client'
 
-import {useRouter} from 'next/navigation'
-import {ComponentPropsWithoutRef, useState} from 'react'
-
-import {cn} from '@/lib/utils'
-import {SignUpFormValues, signUpSchema,} from '../lib/validations/auth'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from '@/components/ui/card'
 import Link from 'next/link'
-import {useForm} from 'react-hook-form'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {Input} from './ui/input'
-import {Button} from './ui/button'
-import {Field, FieldError, FieldLabel} from './ui/field'
+import { useRouter } from 'next/navigation'
+import { ComponentPropsWithoutRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
-export const SignUpForm =({className, ...props}: ComponentPropsWithoutRef<'div'>)=> {
+import { Button } from './ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FieldError, FieldLabel } from './ui/field'
+import { Input } from './ui/input'
+import { createClient } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
+import { SignUpFormValues, signUpApiSchema, signUpSchema } from '../lib/validations/auth'
+
+export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'div'>) => {
   const [apiError, setApiError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -29,60 +30,60 @@ export const SignUpForm =({className, ...props}: ComponentPropsWithoutRef<'div'>
     }
   })
   const handleSignUp = async (data: SignUpFormValues) => {
-    console.log(JSON.stringify(
-      data
-    ))
     setIsLoading(true)
     setApiError(null)
-    
-    const parsed = signUpSchema.safeParse(data)
-    console.log('parsed data', parsed)
+
     if (data.password !== data.repeatPassword) {
       setApiError('Passwords do not match')
       setIsLoading(false)
       return
     }
-    if (!parsed.success) {
-      console.log(parsed.error)
-      setApiError('Please correct invalid values')
-      setIsLoading(false)
-      return
-    } else {
-      const {repeatPassword, ...payload} = data
-      console.log(JSON.stringify(
-        payload
-      ))
-      const formattedData = Object.values(payload)
-      console.log('formattedData', formattedData)
-      try {
-        const response = await fetch('/api/auth/sign-up', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+
+    const supabase = createClient()
+    const origin = window.location.origin
+    const profile = signUpApiSchema.parse(data)
+    try {
+      const { data: signUpData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data:{
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
           },
-          body: JSON.stringify(
-            payload
-          ),
-        })
-      
-        const result = await response.json()
-        
-        console.log('result', result)
-        if (!response.ok) {
-          setApiError(result.error ?? 'Could not create account')
-          return
-        }
-        
-        console.log('SIGN UP SUCCESS')
-        router.push('/auth/sign-up-success')
-      } catch (error: unknown) {
-        console.log('catch')
-        setApiError(error instanceof Error ? error.message : 'An error occurred')
-      } finally {
-        setIsLoading(false)
+          emailRedirectTo: `${origin}/dashboard`,
+        },
+      })
+
+      if (error) throw error
+      if (!signUpData.user) {
+        throw new Error('Could not create the account, please try again.')
       }
+
+      const response = await fetch('/api/auth/sign-up', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: signUpData.user.id,
+          ...profile,
+        }),
+      })
+
+      const result = (await response.json()) as { error?: string }
+
+      if (!response.ok) {
+        setApiError(result.error ?? 'Could not create account')
+      }
+
+      router.push('/auth/sign-up-success')
+    } catch (error: unknown) {
+      setApiError(error instanceof Error ? error.message : 'An error occurred')
+    } finally {
+      setIsLoading(false)
     }
-    
   }
   
   return (
