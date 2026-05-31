@@ -31,9 +31,9 @@ export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div
       if (error) {
         const userExists = await checkUserExist(email)
         if (!userExists) {
-          setError("You aren't registered yet, babe! Click below to sign up. ✨")
+          setError("You aren't registered yet, babe! Click below to sign up.")
         } else {
-          setError("Wrong credentials, queen! Clock your input or reset your password. 👑")
+          setError("Wrong credentials, queen! Clock your input or reset your password.")
         }
         setIsLoading(false)
         return

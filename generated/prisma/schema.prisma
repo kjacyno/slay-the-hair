@@ -25,15 +25,14 @@ enum AppointmentStatus {
 }
 
 model User {
-  userId       String  @id @default(uuid()) @db.Uuid
-  email        String  @unique
-  passwordHash String
-  firstName    String
-  lastName     String
-  phone        String
-  photoUrl     String?
-  role         Role
-  isApproved   Boolean @default(false)
+  userId     String  @id @default(uuid()) @db.Uuid
+  email      String  @unique
+  firstName  String
+  lastName   String
+  phone      String
+  photoUrl   String?
+  role       Role
+  isApproved Boolean @default(false)
 
   schedules           Schedule[]    @relation("StylistSchedules")
   clientAppointments  Appointment[] @relation("ClientAppointments")

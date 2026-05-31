@@ -19,7 +19,6 @@ export const POST = async (request: Request) => {
       create: {
         userId,
         email,
-        passwordHash,
         firstName,
         lastName,
         phone,
@@ -27,10 +26,10 @@ export const POST = async (request: Request) => {
         isApproved: false,
       },
       update: {
-        email,
-        firstName,
-        lastName,
-        phone,
+        // email,
+        // firstName,
+        // lastName,
+        // phone,
       },
     })
   } catch {
