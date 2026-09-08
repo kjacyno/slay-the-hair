@@ -1,16 +1,16 @@
 'use client'
 
-import {useRouter} from 'next/navigation'
-import {ComponentPropsWithoutRef, SyntheticEvent, useState} from 'react'
+import { redirect, useRouter } from 'next/navigation'
+import { ComponentPropsWithoutRef, SyntheticEvent, useState } from 'react'
 
-import {cn} from '@/lib/utils'
-import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import {createClient} from '../lib/supabase/client'
-import {checkUserExist} from '../app/actions/checkUserExists'
+import { createClient } from '../lib/supabase/client'
+import { checkUserExist } from '../app/actions/checkUserExists'
 
 export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   const [email, setEmail] = useState('')
@@ -24,22 +24,24 @@ export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) {
-        const userExists = await checkUserExist(email)
-        if (!userExists) {
-          setError("You aren't registered yet, babe! Click below to sign up.")
-        } else {
-          setError("Wrong credentials, queen! Clock your input or reset your password.")
-        }
-        setIsLoading(false)
-        return
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error) {
+      const userExists = await checkUserExist(email)
+      if (!userExists) {
+        setError("You aren't registered yet, babe! Click below to sign up.")
+      } else {
+        setError('Wrong credentials, queen! Clock your input or reset your password.')
       }
-      router.push('/dashboard')
       setIsLoading(false)
+      router.push(`${window.location.origin}/auth/error?error=${encodeURIComponent(error.message)}`)
+
+      return
+    }
+    router.push('/dashboard')
+    setIsLoading(false)
   }
 
   return (

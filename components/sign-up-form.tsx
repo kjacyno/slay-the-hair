@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ComponentPropsWithoutRef, useState } from 'react'
+import { redirect, useRouter } from 'next/navigation'
+import { ComponentPropsWithoutRef, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -12,32 +12,37 @@ import { Field, FieldError, FieldLabel } from './ui/field'
 import { Input } from './ui/input'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
-import { SignUpFormValues, signUpApiSchema, signUpSchema } from '../lib/validations/auth'
+import { SignUpFormValues, signUpApiSchema, signUpBaseSchema } from '@/lib/validations/auth'
+import { AuthError } from '@supabase/supabase-js'
 
 export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'div'>) => {
   const [apiError, setApiError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  
+  useEffect(() => {
+    if (apiError) {
+      console.log('apiError', apiError)
+      router.push(`${window.location.origin}/auth/error?error=${encodeURIComponent(apiError)}`)
+    }
+  }, [apiError, router])
   const {
     register,
     handleSubmit,
-    formState: {errors},
+    formState: { errors },
   } = useForm<SignUpFormValues>({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(signUpBaseSchema),
     defaultValues: {
-      phone: '+'
-    }
+      phone: '+',
+    },
   })
+  if (errors) {
+    console.log('errors ', errors)
+  }
   const handleSignUp = async (data: SignUpFormValues) => {
+    console.log('click')
     setIsLoading(true)
     setApiError(null)
-
-    if (data.password !== data.repeatPassword) {
-      setApiError('Passwords do not match')
-      setIsLoading(false)
-      return
-    }
+    console.log('sign-up', data)
 
     const supabase = createClient()
     const origin = window.location.origin
@@ -47,7 +52,7 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
         email: data.email,
         password: data.password,
         options: {
-          data:{
+          data: {
             firstName: data.firstName,
             lastName: data.lastName,
             phone: data.phone,
@@ -56,9 +61,13 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
         },
       })
 
-      if (error) throw error
+      if (error) {
+        setApiError(error.message)
+        return
+      }
       if (!signUpData.user) {
-        throw new Error('Could not create the account, please try again.')
+        setApiError('Could not create the account, please try again.')
+        return
       }
 
       const response = await fetch('/api/auth/sign-up', {
@@ -67,7 +76,7 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          id: signUpData.user.id,
+          id: signUpData.user?.id,
           ...profile,
         }),
       })
@@ -75,118 +84,117 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
       const result = (await response.json()) as { error?: string }
 
       if (!response.ok) {
+        console.log(result.error)
         setApiError(result.error ?? 'Could not create account')
+        console.log('error', error)
+        return
       }
 
       router.push('/auth/sign-up-success')
     } catch (error: unknown) {
-      setApiError(error instanceof Error ? error.message : 'An error occurred')
+      console.log('error', error)
+      setApiError(error instanceof AuthError ? error.message : 'An error occurred')
     } finally {
+      console.log('sign-up complete')
       setIsLoading(false)
     }
   }
-  
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
+          <CardTitle className='text-2xl'>Sign up</CardTitle>
           <CardDescription>Create a new client account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(handleSignUp)}>
-            <div className="flex flex-col gap-6">
+            <div className='flex flex-col gap-6'>
               <Field>
-                <FieldLabel htmlFor="first-name">First name</FieldLabel>
+                <FieldLabel htmlFor='first-name'>First name</FieldLabel>
                 <Input
-                  id="first-name"
-                  type="text"
+                  id='first-name'
+                  type='text'
                   aria-invalid={!!errors.firstName}
                   aria-describedby={errors.firstName ? 'first-name-error' : undefined}
-                  {...register('firstName', {required: true})}                                />
+                  {...register('firstName', { required: true })}
+                />
                 {errors.firstName && (
-                  <FieldError id="first-name-error">{errors.firstName.message}</FieldError>
+                  <FieldError id='first-name-error'>{errors.firstName.message}</FieldError>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="first-name">First name</FieldLabel>
+                <FieldLabel htmlFor='first-name'>Last name</FieldLabel>
                 <Input
-                  id="last-name"
-                  type="text"
+                  id='last-name'
+                  type='text'
                   aria-invalid={!!errors.lastName}
-                  aria-describedby={errors.firstName ? 'last-name-error' : undefined}
-                  {...register('lastName', {required: true})}                                />
+                  aria-describedby={errors.lastName ? 'last-name-error' : undefined}
+                  {...register('lastName', { required: true })}
+                />
                 {errors.lastName && (
                   <FieldError id={'last-name-error'}>{errors.lastName.message}</FieldError>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="phone">Phone</FieldLabel>
+                <FieldLabel htmlFor='phone'>Phone</FieldLabel>
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+12345678901"
+                  id='phone'
+                  type='tel'
+                  placeholder='+12345678901'
                   aria-invalid={!!errors.phone}
                   aria-describedby={errors.firstName ? 'phone-error' : undefined}
-                  {...register('phone', {required: true})}                                />
-                {errors.phone && (
-                  <FieldError id="phone-error">
-                    {errors.phone.message}
-                  </FieldError>
-                )}
+                  {...register('phone', { required: true })}
+                />
+                {errors.phone && <FieldError id='phone-error'>{errors.phone.message}</FieldError>}
               </Field>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor='email'>Email</FieldLabel>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  id='email'
+                  type='email'
+                  placeholder='m@example.com'
                   aria-invalid={!!errors.email}
                   aria-describedby={errors.firstName ? 'email-error' : undefined}
-                  {...register('email', {required: true})}                                />
-                {errors.email && (
-                  <FieldError id="email-error">
-                    {errors.email.message}
-                  </FieldError>
-                )}
+                  {...register('email', { required: true })}
+                />
+                {errors.email && <FieldError id='email-error'>{errors.email.message}</FieldError>}
               </Field>
               <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <FieldLabel htmlFor='password'>Password</FieldLabel>
                 <Input
-                  id="password"
-                  type="password"
+                  id='password'
+                  type='password'
                   aria-invalid={!!errors.password}
                   aria-describedby={errors.firstName ? 'password-error' : undefined}
-                  
-                  {...register('password', {required: true, minLength: 6})}                                />
+                  {...register('password', { required: true, minLength: 6 })}
+                />
                 {errors.password && (
-                  <FieldError id="password-error">
-                    {errors.password.message}
-                  </FieldError>
+                  <FieldError id='password-error'>{errors.password.message}</FieldError>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="repeat-password">Repeat Password</FieldLabel>
+                <FieldLabel htmlFor='repeat-password'>Repeat Password</FieldLabel>
                 <Input
-                  id="repeat-password"
-                  type="password"
+                  id='repeat-password'
+                  type='password'
                   aria-invalid={!!errors.repeatPassword}
-                  {...register('repeatPassword', {required: true})}
+                  {...register('repeatPassword', { required: true })}
                 />
                 {errors.repeatPassword && (
-                  <FieldError id="repeat-password-error">
+                  <FieldError id='repeat-password-error'>
                     {errors.repeatPassword.message}
                   </FieldError>
                 )}
               </Field>
-              {apiError && <p className="text-sm text-red-500">{apiError}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              {/*{apiError && <p className='text-sm text-red-500'>{apiError}</p>}*/}
+              <Button type='submit' className='w-full' /*disabled={isLoading}*/>
                 {isLoading ? 'Creating an account...' : 'Sign up'}
               </Button>
             </div>
-            <div className="mt-4 text-center text-sm">
+            <div className='mt-4 text-center text-sm'>
               Already have an account?
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Link href='/auth/login' className='underline underline-offset-4'>
                 Login
               </Link>
             </div>
