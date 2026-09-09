@@ -20,11 +20,13 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   useEffect(() => {
+    console.log('useeffect')
     if (apiError) {
       console.log('apiError', apiError)
-      router.push(`${window.location.origin}/auth/error?error=${encodeURIComponent(apiError)}`)
+      router.push(`/auth/error?error=${encodeURIComponent(apiError)}`)
     }
   }, [apiError, router])
+
   const {
     register,
     handleSubmit,
@@ -35,14 +37,10 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
       phone: '+',
     },
   })
-  if (errors) {
-    console.log('errors ', errors)
-  }
+
   const handleSignUp = async (data: SignUpFormValues) => {
-    console.log('click')
     setIsLoading(true)
     setApiError(null)
-    console.log('sign-up', data)
 
     const supabase = createClient()
     const origin = window.location.origin
@@ -62,11 +60,8 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
       })
 
       if (error) {
+        console.log('signUp error', error)
         setApiError(error.message)
-        return
-      }
-      if (!signUpData.user) {
-        setApiError('Could not create the account, please try again.')
         return
       }
 
