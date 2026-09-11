@@ -308,11 +308,7 @@ export const SignUpForm = ({ className, ...props }: ComponentPropsWithoutRef<'di
                     Preparing The Crown...
                   </span>
                 ) : (
-                  <span className='inline-flex items-center gap-2'>
-                    <Sparkles className='h-4 w-4' />
-                    Claim My Chair
-                    <Sparkles className='h-4 w-4' />
-                  </span>
+                  <span className='inline-flex items-center gap-2'>Claim My Chair</span>
                 )}
               </Button>
             </div>

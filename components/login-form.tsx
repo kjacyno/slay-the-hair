@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { ComponentPropsWithoutRef, SyntheticEvent, useState } from 'react'
+import { Loader2, Lock, Mail } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -51,54 +52,97 @@ export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
-      <Card>
+      <Card className='border-primary/20 shadow-2xl backdrop-blur-md bg-card/95'>
         <CardHeader>
-          <CardTitle className='text-2xl'>Login</CardTitle>
-          <CardDescription>Enter your email below to login to your account </CardDescription>
+          <CardTitle className='text-center text-3xl font-black tracking-tight uppercase bg-gradient-to-r from-primary via-rose-500 to-amber-500 bg-clip-text text-transparent'>
+            Welcome Back, Gorgeous
+          </CardTitle>
+          <CardDescription className='text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
+            Serve your credentials below to enter the salon.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin}>
-            <div className='flex flex-col gap-6'>
-              <div className='grid gap-2'>
-                <Label htmlFor='email'>Email</Label>
-                <Input
-                  id='email'
-                  type='email'
-                  autoComplete='email'
-                  placeholder='slay@example.com'
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+          <form onSubmit={handleLogin} className='space-y-5'>
+            <div className='flex flex-col gap-4'>
+              <div className='grid gap-1.5'>
+                <Label
+                  htmlFor='email'
+                  className='text-xs font-bold uppercase tracking-wider text-muted-foreground'
+                >
+                  Email Address
+                </Label>
+                <div className='relative'>
+                  <Input
+                    id='email'
+                    name='email'
+                    type='email'
+                    autoComplete='email'
+                    placeholder='slay@example.com'
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className='pl-9 focus-visible:ring-primary'
+                  />
+                  <Mail className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+                </div>
               </div>
-              <div className='grid gap-2'>
-                <div className='flex items-center'>
-                  <Label htmlFor='password'>Password</Label>
+              <div className='grid gap-1.5'>
+                <div className='flex items-center justify-between'>
+                  <Label
+                    htmlFor='password'
+                    className='text-xs font-bold uppercase tracking-wider text-muted-foreground'
+                  >
+                    Password
+                  </Label>
                   <Link
                     href='/auth/forgot-password'
-                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
+                    className='text-xs font-semibold text-primary underline-offset-4 hover:underline'
                   >
-                    Forgot your password?
+                    Forgot key?
                   </Link>
                 </div>
-                <Input
-                  id='password'
-                  type='password'
-                  autoComplete='current-password'
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className='relative'>
+                  <Input
+                    id='password'
+                    name='password'
+                    type='password'
+                    autoComplete='current-password'
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className='pl-9 focus-visible:ring-primary'
+                  />
+                  <Lock className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+                </div>
               </div>
-              {error && <p className='text-sm text-red-500'>{error}</p>}
-              <Button type='submit' className='w-full cursor-pointer' disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login'}
+              {error && (
+                <div className='rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-center text-xs font-semibold text-destructive animate-in fade-in-50 slide-in-from-top-1'>
+                  {error}
+                </div>
+              )}
+              <Button
+                type='submit'
+                disabled={isLoading}
+                className='w-full mt-2 font-bold uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-primary/25 transition-all active:scale-[0.98]'
+              >
+                {isLoading ? (
+                  <span className='inline-flex items-center gap-2'>
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                    Serving Access...
+                  </span>
+                ) : (
+                  <span className='inline-flex items-center gap-2'>Let&apos;s werk!</span>
+                )}
               </Button>
             </div>
-            <div className='mt-4 text-center text-sm'>
-              Don&apos;t have an account?{' '}
-              <Link href='/auth/sign-up' className='underline underline-offset-4'>
-                Sign up
+
+            <div className='text-center text-xs font-medium text-muted-foreground pt-2'>
+              Don&apos;t have an account yet?{' '}
+              <Link
+                href='/auth/sign-up'
+                className='font-bold text-primary underline underline-offset-4 hover:text-primary/80 transition-colors'
+              >
+                Sign up & Slay
               </Link>
             </div>
           </form>
