@@ -21,9 +21,9 @@ Validation: Use Zod for schema validation on both the client and server sides.
 
 Schema Design:
 
-User Roles: CLIENT, HAIRDRESSER, ADMIN.
+User Roles: CLIENT, STYLIST, ADMIN.
 
-Client Approval: New clients must have an isApproved flag set to false. Access to booking is restricted until an Admin sets this to true.
+Client Approval: New clients must have an isApproved flag set to true to facilitate registering process. This later may be changed to default: false to require admin approval for access to bookings.
 
 Time Blocks: All appointments and shifts must start on the hour (e.g., 10:00, 11:00).
 
@@ -40,9 +40,9 @@ Logic: If status === 'PENDING' and createdAt is > 10 mins ago, the slot is consi
 
 Capacity Limits:
 
-Maximum of 4 hairdressers working at the same time (limited stations).
+Maximum of 4 stylists working at the same time (limited stations).
 
-Hairdressers cannot exceed 40 hours of work per week.
+Stylist cannot exceed 40 hours of work per week.
 
 Operating Hours:
 
@@ -66,7 +66,7 @@ Feedback: Use sonner or toast for success/error notifications after server actio
 4. Security & Authentication
    Supabase Auth: Use Supabase for session management.
 
-Password Safety: All passwords must be hashed using bcrypt before database entry (if not using Supabase Auth's native provider).
+Password Safety: All passwords must use Supabase Auth's native provider.
 
 Role-Based Access Control (RBAC): Check user roles on the server before rendering protected layouts or executing sensitive actions.
 
