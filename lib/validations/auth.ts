@@ -8,7 +8,10 @@ export const signUpBaseSchema = z.object({
   lastName: z.string().trim().min(1, 'Last name is required.'),
   phone: z.e164('Enter a valid phone number, including country code.'),
 })
-
+export const signUpSchema = signUpBaseSchema.refine(
+  (data) => data.password === data.repeatPassword,
+  { message: 'Passwords do not match.', path: ['repeatPassword'] },
+)
 export const signUpApiSchema = signUpBaseSchema.omit({ repeatPassword: true })
 export const signUpProfileSchema = signUpApiSchema.extend({
   userId: z.uuid(),

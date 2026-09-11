@@ -1,6 +1,6 @@
 'use client'
 
-import { redirect, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { ComponentPropsWithoutRef, SyntheticEvent, useState } from 'react'
 
 import { cn } from '@/lib/utils'
@@ -9,8 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import { createClient } from '../lib/supabase/client'
-import { checkUserExist } from '../app/actions/checkUserExists'
+import { createClient } from '@/lib/supabase/client'
+import { checkUserExist } from '@/app/actions/checkUserExists'
 
 export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   const [email, setEmail] = useState('')
@@ -21,27 +21,32 @@ export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div
 
   const handleLogin = async (e: SyntheticEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithPassword({
+
+    const supabase = createClient()
+
+    const { error: AuthError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    if (error) {
+    if (AuthError) {
+      if (AuthError?.message !== 'Invalid login credentials') {
+        router.push(`/auth/error?error=${encodeURIComponent(AuthError.message)}`)
+        return
+      }
       const userExists = await checkUserExist(email)
+      console.log('userExists', userExists)
       if (!userExists) {
         setError("You aren't registered yet, babe! Click below to sign up.")
       } else {
         setError('Wrong credentials, queen! Clock your input or reset your password.')
       }
       setIsLoading(false)
-      router.push(`${window.location.origin}/auth/error?error=${encodeURIComponent(error.message)}`)
-
       return
     }
     router.push('/dashboard')
-    setIsLoading(false)
+    router.refresh()
   }
 
   return (
@@ -49,7 +54,7 @@ export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div
       <Card>
         <CardHeader>
           <CardTitle className='text-2xl'>Login</CardTitle>
-          <CardDescription>Enter your email below to login to your account</CardDescription>
+          <CardDescription>Enter your email below to login to your account </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
@@ -59,7 +64,8 @@ export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div
                 <Input
                   id='email'
                   type='email'
-                  placeholder='m@example.com'
+                  autoComplete='email'
+                  placeholder='slay@example.com'
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -78,13 +84,14 @@ export function LoginForm({ className, ...props }: ComponentPropsWithoutRef<'div
                 <Input
                   id='password'
                   type='password'
+                  autoComplete='current-password'
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               {error && <p className='text-sm text-red-500'>{error}</p>}
-              <Button type='submit' className='w-full' disabled={isLoading}>
+              <Button type='submit' className='w-full cursor-pointer' disabled={isLoading}>
                 {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </div>

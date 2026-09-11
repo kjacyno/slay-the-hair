@@ -25,14 +25,15 @@ enum AppointmentStatus {
 }
 
 model User {
-  userId       String        @id @default(uuid()) @db.Uuid
+  id           Int           @id @default(autoincrement())
+  userId       String        @unique  @db.Uuid
   email        String        @unique
   firstName    String
   lastName     String
   phone        String
   photoUrl     String?
   role         Role
-  isApproved   Boolean       @default(false)
+  isApproved   Boolean       @default(true)
 
   schedules                Schedule[]    @relation("StylistSchedules")
   clientAppointments       Appointment[] @relation("ClientAppointments")
@@ -40,9 +41,9 @@ model User {
 }
 
 model Schedule {
-  id            String   @id @default(uuid()) @db.Uuid
-  stylistId     String   @db.Uuid
-  date          DateTime @db.Date
+  id            Int             @id @default(autoincrement())
+  stylistId     String          @db.Uuid
+  date          DateTime        @db.Date
   startTime     Int
   endTime       Int
 
@@ -52,7 +53,7 @@ model Schedule {
 }
 
 model Appointment {
-  id            String            @id @default(uuid()) @db.Uuid
+  id            Int               @id @default(autoincrement())
   clientId      String            @db.Uuid
   stylistId     String            @db.Uuid
   date          DateTime          @db.Date

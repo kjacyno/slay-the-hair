@@ -29,7 +29,6 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   // await supabase.auth.refreshSession()
   const { data, error } = await supabase.auth.getClaims()
-  console.log('data: ', data?.claims)
   if (error || !data?.claims) {
     redirect('/auth/login')
   }
